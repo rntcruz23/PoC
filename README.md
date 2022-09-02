@@ -1,3 +1,1 @@
-# PoC
-
 [Work in progress]
