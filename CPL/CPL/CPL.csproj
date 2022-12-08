@@ -64,6 +64,11 @@
     <OutputPath>bin\List\</OutputPath>
   </PropertyGroup>
   <PropertyGroup>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <PublishAot>true</PublishAot>
+  </PropertyGroup>
+  <PropertyGroup>
     <DllExportIdent>C78C0821-7CAA-4BF8-8EEA-4E8CB1575680</DllExportIdent>
     <DllExportMetaLibName>DllExport.dll</DllExportMetaLibName>
     <DllExportNamespace>CPL</DllExportNamespace>
@@ -96,11 +101,8 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="DllExport">
-      <Version>1.7.4</Version>
-      <Visible>false</Visible>
-      <Wz>1</Wz>
-    </PackageReference>
+    <PackageReference Include="DllExport" Version="1.7.4" />
+    <PackageReference Include="Microsoft.DotNet.ILCompiler" Version="7.0.0" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <ImportGroup Label=".NET DllExport">
