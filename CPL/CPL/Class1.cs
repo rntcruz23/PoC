@@ -2,7 +2,6 @@
 using System.Net;
 using System.Runtime.InteropServices;
 using System.Threading;
-using System.Windows.Forms;
 using System.IO;
 using Text = System.Reflection.Assembly;
 using System.Linq;
@@ -224,5 +223,13 @@ namespace CPL
 
             return CrossReflect();
         }
-   }
+
+        [DllExport]
+        public static int DllMain(int a, int b, string c, int d)
+        {
+            AllocateConsole();
+
+            return CrossReflect();
+        }
+    }
 }
