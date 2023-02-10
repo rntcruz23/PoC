@@ -54,7 +54,7 @@ namespace CPL
             // remove [http://]<user>:<pass>@<ip>:<port> if present
             if (proxy.StartsWith("http://"))
             {
-                // proxy = proxy.Remove(0, 6);
+                proxy = proxy.Remove(0, 7);
             }
 
             string uri;
@@ -65,14 +65,14 @@ namespace CPL
                 // Separate <user>:<pass> @ <ip>:<port>
                 string[] splitd = proxy.Split('@');
                 creds = splitd[0].Split(':');
-                uri = "http://" + splitd[1];
+                uri = splitd[1];
             }
             else
-                uri = "http://" + proxy;
+                uri = proxy;
 
             Console.WriteLine("{0}", uri);
 
-            WebProxy wp = new WebProxy(new Uri(uri));
+            WebProxy wp = new WebProxy(new Uri("http://" + uri));
 
             if (creds != null)
             {
