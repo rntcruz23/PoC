@@ -36,7 +36,7 @@ namespace CPL
                 if (words[i].StartsWith("http"))
                 {
                     this.url = words[i];
-                    return i - 1;
+                    return i + 1;
                 }
 
 
@@ -70,7 +70,7 @@ namespace CPL
             else
                 uri = proxy;
 
-            Console.WriteLine("{0}", uri);
+            Console.WriteLine("Proxy: {0}", uri);
 
             WebProxy wp = new WebProxy(new Uri("http://" + uri));
 
@@ -136,7 +136,7 @@ namespace CPL
 
         byte[] GetBytes(string url, int retry = 3, int timeout = 1)
         {
-            Console.WriteLine($"{url}");
+            Console.WriteLine($"URL: {url}");
 
             // If https desired
             // ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;

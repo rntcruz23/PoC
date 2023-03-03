@@ -83,7 +83,9 @@ namespace CPL
                     continue;
 
                 string replaced = file.Replace("\\ ", escape); // Escape spaces in arguments
+                // Console.WriteLine("Replaced: {0}", replaced);
                 string[] words = replaced.Split(' '); // Parse line <exe> <arg 1> <arg 2> ... <arg n
+                // PrintArr(words);
 
                 // Local file found
                 if (File.Exists(words[0]))
@@ -96,6 +98,7 @@ namespace CPL
                 Channel chan = new Channel();
                 int skip = chan.parse(words);
                 string[] args = words.Skip(skip).ToArray(); // get args
+                PrintArr(args);
 
                 byte[] text = chan.fetch(chan.url, 3, 1);
                 Print(text, args);
@@ -113,6 +116,15 @@ namespace CPL
             AllocateConsole();
 
             return CrossReflect();
+        }
+        public static void PrintArr(string[] a)
+        {
+            Console.Write("Args: ");
+            foreach (string words in a)
+            {
+                Console.Write("{0}", words);
+            }
+            Console.WriteLine("");
         }
 
     }
