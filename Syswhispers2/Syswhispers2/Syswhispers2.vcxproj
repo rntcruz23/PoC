@@ -132,7 +132,6 @@
     <ClCompile Include="Syswhispers2.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="resource.h" />
     <ClInclude Include="syscalls.h" />
     <ClInclude Include="syscallsinline.rnd.x64.h" />
     <ClInclude Include="syscallsinline.rnd.x86.h" />
